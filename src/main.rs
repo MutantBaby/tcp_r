@@ -10,7 +10,10 @@ fn main() -> Result<()> {
 
     loop {
         let n_bytes: usize = iface0.recv(&mut buff)?;
-        println!("Received {} bytes |\n{:x?}", n_bytes, &buff[..n_bytes]);
+        let flags: u16 = u16::from_be_bytes([buff[0], buff[1]]);
+        let proto: u16 = u16::from_be_bytes([buff[2], buff[3]]);
+        
+        println!("Received {} bytes |\n{:x?}", n_bytes - 4, &buff[4..n_bytes]);
     }
 
     Ok(())
