@@ -19,19 +19,35 @@ fn main() -> Result<()> {
 
         match etherparse::Ipv4HeaderSlice::from_slice(&buff[4..n_bytes]) {
             Ok(packet) => {
-                if packet.protocol() != 0x06 {
-                    // not TCP
-                    println!("Not TCP packet, skipping");
-                    continue;
+                // if packet.protocol() != 0x06 {
+                //     // not TCP
+                //     println!("Not TCP packet, skipping");
+                //     continue;
+                // }
+
+                match etherparse::TcpHeaderSlice::from_slice(&buff[4 + packet.slice().len()..]) {
+                    Ok(tcp) => {
+                        println!(
+                            "SRC: {}:{}  ->  DES: {}:{}  LENGTH: {}b of TCP",
+                            packet.source_addr(),
+                            tcp.source_port(),
+                            packet.destination_addr(),
+                            tcp.destination_port(),
+                            packet.payload_len()
+                        );
+                    }
+                    Err(e) => {
+                        println!("Not a TCP packet, skipping: {:?}", e);
+                    }
                 }
 
-                eprintln!(
-                    "SRC: {} -> DES: {}  LENGTH: {}b of PROTOCOL: {}",
-                    packet.source_addr(),
-                    packet.destination_addr(),
-                    packet.payload_len(),
-                    packet.protocol()
-                );
+                // eprintln!(
+                //     "SRC: {}  ->  DES: {}  LENGTH: {}b of PROTOCOL: {}",
+                //     packet.source_addr(),
+                //     packet.destination_addr(),
+                //     packet.payload_len(),
+                //     packet.protocol()
+                // );
             }
             Err(e) => {
                 println!("Not an IPv4 packet, skipping: {:?}", e);
