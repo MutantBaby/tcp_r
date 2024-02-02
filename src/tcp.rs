@@ -14,7 +14,7 @@ impl State {
         data: &'a [u8],
     ) {
         eprintln!(
-            "SRC: {}:{}  ->  DES: {}:{}  LENGTH: {}b of TCP",
+            "SRC= {} :{}   -->   DES= {} :{}   LENGTH= {}b of TCP",
             ip_header.source_addr(),
             tcp_header.source_port(),
             ip_header.destination_addr(),

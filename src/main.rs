@@ -10,9 +10,9 @@ struct Quad {
 }
 
 fn main() -> Result<()> {
-    
     let mut connection: HashMap<Quad, tcp::State> = Default::default();
     let iface0: Iface = Iface::new("tun0", Mode::Tun)?;
+    // let iface1: Iface = Iface::new("tap0", Mode::Tap)?;
     let mut buff: Vec<u8> = vec![0; 1504];
 
     loop {
@@ -22,7 +22,7 @@ fn main() -> Result<()> {
 
         if eth_proto != 0x0800 {
             // not IPv4
-            println!("Not an IPv4 packet, skipping");
+            eprintln!("Not an IPv4 packet, skipping");
             continue;
         }
 
@@ -30,7 +30,7 @@ fn main() -> Result<()> {
             Ok(ip_header) => {
                 if ip_header.protocol() != 0x06 {
                     // not TCP
-                    // eprintln!("Not TCP packet, skipping");
+                    eprintln!("Not TCP packet, skipping");
                     continue;
                 }
 
@@ -45,15 +45,6 @@ fn main() -> Result<()> {
                             })
                             .or_default()
                             .on_packet(ip_header.clone(), tcp_header.clone(), &buff[data_i..]);
-
-                        // println!(
-                        //     "SRC: {}:{}  ->  DES: {}:{}  LENGTH: {}b of TCP",
-                        //     ip_header.source_addr(),
-                        //     tcp_header.source_port(),
-                        //     ip_header.destination_addr(),
-                        //     tcp_header.destination_port(),
-                        //     ip_header.payload_len()
-                        // );
                     }
                     Err(e) => {
                         eprintln!("Not a TCP packet, skipping: {:?}", e);
