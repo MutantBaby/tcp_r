@@ -35,10 +35,10 @@ fi
 # sudo ip addr add 10.0.0.2/24 dev tap0
 # sudo ip link set up dev tap0
 
-# # Create and configure tun0
-# sudo ip tuntap add tun0 mode tun
-# sudo ip addr add 192.168.0.1/24 dev tun0
-# sudo ip link set up dev tun0
+# Create and configure tun0
+sudo ip tuntap add tun0 mode tun
+sudo ip addr add 192.168.0.1/24 dev tun0
+sudo ip link set up dev tun0
 
 # Run the binary in the background and capture its PID
 target/release/tcp_rust &

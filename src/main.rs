@@ -1,6 +1,7 @@
 use std::{collections::HashMap, io::Result, net::Ipv4Addr};
 use tun_tap::{Iface, Mode};
 
+mod cus_types;
 mod tcp;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
@@ -16,21 +17,27 @@ fn main() -> Result<()> {
     let mut buff: Vec<u8> = vec![0; 1504];
 
     loop {
-        let n_bytes: usize = iface0.recv(&mut buff)?;
-        let _eth_flags: u16 = u16::from_be_bytes([buff[0], buff[1]]);
-        let eth_proto: u16 = u16::from_be_bytes([buff[2], buff[3]]);
+        let n_bytes: usize = iface0.recv(&mut buff)?; // receiving packets
+        let _eth_flags: u16 = u16::from_be_bytes([buff[0], buff[1]]); // big endian
+        let eth_proto: u16 = ((buff[2] as u16) << 8) | (buff[3] as u16); // big endian
 
         if eth_proto != 0x0800 {
-            // not IPv4
-            eprintln!("Not an IPv4 packet, skipping");
+            eprintln!(
+                "Not an IPv4 packet, skipping {:?}",
+                cus_types::EtherType::from_representation(eth_proto)
+            );
             continue;
         }
 
         match etherparse::Ipv4HeaderSlice::from_slice(&buff[4..n_bytes]) {
             Ok(ip_header) => {
                 if ip_header.protocol() != 0x06 {
-                    // not TCP
-                    eprintln!("Not TCP packet, skipping");
+                    eprintln!(
+                        "Not TCP packet, skipping {:?}",
+                        cus_types::IPv4ProtocolName::from_representation(
+                            ip_header.protocol().into()
+                        )
+                    );
                     continue;
                 }
 
@@ -47,12 +54,12 @@ fn main() -> Result<()> {
                             .on_packet(ip_header.clone(), tcp_header.clone(), &buff[data_i..]);
                     }
                     Err(e) => {
-                        eprintln!("Not a TCP packet, skipping: {:?}", e);
+                        eprintln!("Issue in converting TCP: {:?}", e);
                     }
                 }
             }
             Err(e) => {
-                eprintln!("Not an IPv4 packet, skipping: {:?}", e);
+                eprintln!("Issue in converting Ipv4: {:?}", e);
             }
         }
     }
